@@ -129,7 +129,16 @@ endif
 DEFINES +=   -DFPUEMU -DUNALIGNED_PROFITABLE -DAMAX -DAGA -DAUTOCONFIG -DFILESYS  -DFDI2RAW -DDEBUGGER -DSAVESTATE -DENFORCER -DACTION_REPLAY -DHAVE_FUNC_ATTRIBUTE_REGPARM=0
 #-DSCSIEMU -DSCSIEMU_LINUX_IOCTL -DUSE_SDL -DDRIVESOUND -DBSDSOCKET -DCDTV -DCD32  -DA2091 -DNCR  -DGAYLE
 DEFINES += -D__LIBRETRO__
-CFLAGS += $(DEFINES) -DRETRO=1 -DINLINE="inline" -std=gnu11 -DSTATIC_MAKEFILE
+CFLAGS += $(DEFINES) -DRETRO=1 -DINLINE="inline" -std=gnu11 -DSTATIC_MAKEFILE -DHAVE_CONFIG_H
+
+# fs-uae is built on glib; ask pkg-config where it lives instead of expecting
+# the caller to pass it in through EXTRA_INCLUDES.
+ifneq (,$(filter unix linux-portable osx,$(platform)))
+   GLIB_CFLAGS := $(shell pkg-config --cflags glib-2.0 gthread-2.0)
+   GLIB_LIBS   := $(shell pkg-config --libs glib-2.0 gthread-2.0)
+   EXTRA_INCLUDES += $(GLIB_CFLAGS)
+   LDFLAGS += $(GLIB_LIBS)
+endif
 
 include Makefile.common
 

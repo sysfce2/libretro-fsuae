@@ -1,0 +1,71 @@
+# DESCRIPTION: GitLab CI/CD for libRetro (NOT FOR GitLab-proper)
+
+##############################################################################
+################################# BOILERPLATE ################################
+##############################################################################
+
+# Core definitions
+.core-defs:
+  variables:
+    MAKEFILE: Makefile.libretro
+    CORENAME: fsuae
+
+# fs-uae is an autotools project and the libretro makefile builds on top of
+# what configure generates (config.h) plus the m68k code the `gen` target
+# emits, so both have to run before the core itself is built. The build
+# images carry neither the autotools nor all of fs-uae's -dev packages.
+.core-deps:
+  before_script:
+    - export NUMPROC=$(($(nproc)/5))
+    - apt-get update -qy
+    - apt-get install -qy autoconf automake libtool pkg-config gettext libglib2.0-dev libopenal-dev libpng-dev zlib1g-dev
+    - ./autogen.sh
+    - ./configure --enable-shared --disable-static --without-libmpeg2 --disable-jit
+    - make -f ${MAKEFILE} gen -j${NUMPROC}
+
+# Inclusion templates, required for the build to work
+include:
+  ################################## DESKTOPS ################################
+  # Linux 64-bit
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/linux-x64.yml'
+
+  # Linux 32-bit
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/linux-i686.yml'
+
+  # Linux ARM 64-bit
+  - project: 'libretro-infrastructure/ci-templates'
+    file: '/linux-aarch64.yml'
+
+# Stages for building
+stages:
+  - build-prepare
+  - build-shared
+  - build-static
+
+##############################################################################
+#################################### STAGES ##################################
+##############################################################################
+#
+################################### DESKTOPS #################################
+# Linux 64-bit
+libretro-build-linux-x64:
+  extends:
+    - .libretro-linux-x64-make-default
+    - .core-defs
+    - .core-deps
+
+# Linux 32-bit
+libretro-build-linux-i686:
+  extends:
+    - .libretro-linux-i686-make-default
+    - .core-defs
+    - .core-deps
+
+# Linux ARM 64-bit
+libretro-build-linux-aarch64:
+  extends:
+    - .libretro-linux-aarch64-make-default
+    - .core-defs
+    - .core-deps
