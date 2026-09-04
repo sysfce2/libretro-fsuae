@@ -20,7 +20,7 @@
     - apt-get update -qy
     - apt-get install -qy autoconf automake libtool pkg-config gettext libglib2.0-dev libopenal-dev libpng-dev zlib1g-dev
     - ./autogen.sh
-    - ./configure --enable-shared --disable-static --without-libmpeg2
+    - ./configure --enable-shared --disable-static --without-libmpeg2 --disable-jit
     - make -f ${MAKEFILE} gen -j${NUMPROC}
 
 # Inclusion templates, required for the build to work
